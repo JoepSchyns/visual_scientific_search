@@ -1,0 +1,19 @@
+{
+  "name": "visual_scientific_search",
+  "version": "1.0.0",
+  "description": "scientific search engine using scientific networks",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoepSchyns/visual_scientific_search.git"
+  },
+  "author": "Joep Schyns",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoepSchyns/visual_scientific_search/issues"
+  },
+  "homepage": "http://joep.space"
+}

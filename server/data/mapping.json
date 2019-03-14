@@ -1,0 +1,28 @@
+
+{
+  // "mappings": {
+    "semanticscholar": { 
+      "properties": { 
+        "id": { "type": "text"},
+        "title": { "type": "text" },
+        "paperAbstract": { "type": "text" },
+        "entities": { "type": "nested" },
+        "s2Url": { "type": "text" },
+        "s2PdfUrl": { "type": "text" },
+        "pdfUrls":  {"type": "nested" },
+        "authors":  {"type": "nested" },
+        "inCitations":  {"type": "nested" },
+        "outCitations": { "type": "nested" },
+        "year":  {"type": "integer" },
+        "venue": { "type": "text" },
+        "journalName": { "type": "text" },
+        "journalVolume": { "type": "text" },
+        "journalPages": { "type": "text" },
+        "sources": { "type": "nested" },
+        "doi": { "type": "text" },
+        "doiUrl": { "type": "text" },
+        "pmid": { "type": "text" }
+      }
+    }
+  // }
+}

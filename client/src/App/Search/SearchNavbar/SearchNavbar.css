@@ -1,0 +1,48 @@
+.navbar {
+    background-color: #6976e5 !important;
+}
+.navbar-icons{
+   font-size:25px;
+}
+.searchInput{
+    width: 600px !important;
+
+
+}
+.form-group{
+    margin-bottom:0;
+
+}
+textarea:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus,
+input[type="date"]:focus,
+input[type="month"]:focus,
+input[type="time"]:focus,
+input[type="week"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="color"]:focus,
+.uneditable-input:focus {   
+  border-color: none;
+  box-shadow: none;
+  outline: none;
+}
+
+#query{
+    border-top-left-radius: 10px !important;
+    border-bottom-left-radius: 10px!important;
+}
+.btn-secondary{
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px!important;
+}
+.init{
+    height: 400px;
+    background-image: linear-gradient(#6976e5, #b79cef);
+}
