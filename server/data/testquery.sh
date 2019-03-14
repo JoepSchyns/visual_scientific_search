@@ -1,0 +1,1 @@
+curl -XGET -H "Content-Type: application/json" http://localhost:9200/search/semanticscholar2/_search?pretty -d '{ "_source" : ["title"],"query" : { "match" : {"title": "The social virtues and the creation of prosperity"} } }'

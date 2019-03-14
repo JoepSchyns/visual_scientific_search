@@ -1,0 +1,14 @@
+.list-group-item.active{
+	background-color: #6f7dd9;
+
+}
+.ResultList{
+	height: 1000px;
+	overflow-y: scroll;
+}
+.list-group-item-heading{
+	font-size: 15px;
+}
+.list-group-item-text{
+	font-size: 10px;
+}
