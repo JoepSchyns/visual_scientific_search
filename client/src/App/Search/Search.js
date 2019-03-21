@@ -83,17 +83,18 @@ class Search extends Component{
 			<Row>
 				<Col xs="9">
 
-					{this.state.nodes.length == 0 ?
+					{this.state.nodes.length != 0 ?
 						<StageSpinner
 			                size={30}
 			                color="#b59bef"
 			                loading={true}/> 
 			            :
 						<Visualisation 
-						 	data = {{
-						    	nodes: this.state.nodes,
-						    	links: this.state.links
-								}}
+						 	data =  {[
+								{id: '5fbmzmtc', x: 7, y: 41, z: 6},
+								{id: 's4f8phwm', x: 11, y: 45, z: 9}]}
+							domain= {{x: [0, 30], y: [0, 100]}}
+
 	 					/> 
 	 				}
 				</Col>

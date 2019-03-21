@@ -8,14 +8,15 @@ var client = new elasticsearch.Client({
 });
 client.ping({
   // ping usually has a 3000ms timeout
-  requestTimeout: 1000
+  requestTimeout: 3000
 }, function (error) {
   if (error) {
-    console.trace('elasticsearch cluster is down!');
+    console.log('elasticsearch cluster is down!');
   } else {
     console.log('elasticsearch cluster is up!');
   }
 });
+//this is an test
 const app = express();
 const bodyParser  =  require("body-parser");
 
