@@ -15,7 +15,6 @@ class QueryInput extends Component {
   }
   handleData = (data) =>{
       let result = JSON.parse(data);
-      console.log(result);
       this.props.callbackToSearchBar(result);     //passdata
   }
   handleOpen = ()  =>{

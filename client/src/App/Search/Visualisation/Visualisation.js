@@ -10,35 +10,36 @@ class Visualisation extends Component {
   	}
 
 	componentDidMount = () => {
+		console.log("componentDidMount");
 		var el = ReactDOM.findDOMNode(this);
 		console.log(d3Graph);
 		d3Graph.create(el, {
 		  width: '100%',
-		  height: '300px'
-		}, this.getChartState());
+		  height: '100%'
+		}, this.props.data);
 	};
 
 	componentDidUpdate = () => {
+		console.log("componentDidUpdate");
+		console.log(this.props.data);
 		var el = ReactDOM.findDOMNode(this);
-		console.log(el);
-		d3Graph.update(el, this.getChartState());
+		d3Graph.update(el, this.props.data);
 	};
 
-	getChartState = () => {
-		return {
-		  	data: this.props.data,
-		  	domain: this.props.domain
-		}
-	};
+	// getChartState = () => {
+	// 	return {
+	// 	  	data: this.props.data
+	// 	}
+	// };
 
 	componentWillUnmount = () => {
-		var el = this.getDOMNode();
+		var el = ReactDOM.findDOMNode(this);
 		d3Graph.destroy(el);
 	};
 
 	render(){
     	return (
-    		<div className="graph"></div>
+    		<div className="graph h-100"></div>
     	);
   	};
 

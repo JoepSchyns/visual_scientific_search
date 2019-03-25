@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import { Route, Switch } from 'react-router-dom';
-import './App.css';
 import Search from './Search/Search';
 
 class App extends Component {
   render() {
     const App = () => (
-      <div >
+      <div>
         <Switch>
           <Route exact path='/' component={Search}/>
         </Switch>

@@ -37,63 +37,51 @@ class Search extends Component{
 							links:[],
 							nodes:[]});
 	   	}
+
+
 	   	if(dataFromChild.search_result_lookup){ //add new lookup data
-	   		dataFromChild.search_result_lookup.inCitations.forEach(function(citation_id) {
-	   // 			this.setState(prevState => ({
-	  	// 			links: [...prevState.links, { source: citation_id, target: dataFromChild.search_result_lookup.id }]
-				// }));
-			},this);
-			//connect all current items
-
 			this.setState(prevState => ({
-	  			nodes: [...prevState.nodes, { id: dataFromChild.search_result_lookup.title}],
-	  			
-
+	  			nodes: [...prevState.nodes, dataFromChild.search_result_lookup]
 			}));
-	   			
-	   		
-	   		if(!this.state.search_results_lookup){ //if it does not excist yet add the first one manually
-	   			this.setState({
-	   				search_results_lookup: [dataFromChild.search_result_lookup]
-	   				});
-	   		}else{
-	   // 			var newLinks = [];
-	   // 			this.state.search_results_lookup[-1]
-				// this.state.search_results_lookup.forEach(function(lookup) {
-				// 	console.log(lookup);
-				// 	newLinks.push({ source: lookup.title, target: dataFromChild.search_result_lookup.title,labelProperty:"search_results" })
-				// },this);
-		   		this.setState(prevState => ({
-	  				search_results_lookup: [...prevState.search_results_lookup, dataFromChild.search_result_lookup],
-	  				links: [...prevState.links, { source: this.state.search_results_lookup[this.state.search_results_lookup.length - 1].title, target:dataFromChild.search_result_lookup.title,labelProperty:"search_results"}]
-				}))
-	   		}
+			if(this.state.nodes.length > 1){
+				this.setState(prevState => ({
+	  				links: [...prevState.links, { source: this.state.nodes[this.state.nodes.length - 2].id, target:this.state.nodes[this.state.nodes.length - 1].id,labelProperty:"search_results"}]
+				}));
+			}
 	   	}
+
+
 	   	if(dataFromChild.search_results){ //query has response
 	   		this.setState({search_results:dataFromChild.search_results}); // search_results
 	   	}
+
+	   if(dataFromChild.lookupArrayOfCitation){ //add new citation lookup data	
+	   	console.log("lookupArrayOfCitation");
+	   	console.log(dataFromChild.lookupArrayOfCitation);
+	   		this.setState(prevState => ({
+	  			nodes: [...prevState.nodes, dataFromChild.lookupArrayOfCitation],
+	  			links: [...prevState.links, {source:dataFromChild.source , target:dataFromChild.lookupArrayOfCitation.id}]
+			}));
+	   }
 	   	
   	};
 
 	render(){
 		return(
-			<div>
-			<SearchNavbar callbackToSearch={this.callbackFromSearchBar}/>
-			<Container fluid style={{padding:0}}>
-			<Row>
+			<div >
+			<Container fluid className={"h-100 d-flex flex-column"} style={{padding:0,overflow:"hidden"}}>
+				<SearchNavbar callbackToSearch={this.callbackFromSearchBar}/>
+			<Row  className={"flex-fill"}>
 				<Col xs="9">
 
-					{this.state.nodes.length != 0 ?
+					{this.state.nodes.length == 0 ?
 						<StageSpinner
 			                size={30}
 			                color="#b59bef"
 			                loading={true}/> 
 			            :
 						<Visualisation 
-						 	data =  {[
-								{id: '5fbmzmtc', x: 7, y: 41, z: 6},
-								{id: 's4f8phwm', x: 11, y: 45, z: 9}]}
-							domain= {{x: [0, 30], y: [0, 100]}}
+						 	data={{nodes:this.state.nodes,links:this.state.links}}
 
 	 					/> 
 	 				}

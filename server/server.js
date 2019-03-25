@@ -46,37 +46,74 @@ wss.on('connection', function connection(ws) {
   //
 });
 function handleQuery(ws,query){
-	return scholar.search(query)
+	return scholar.search(query) //get results from google scholar
+
 	.then(result => {
 		search_results = result.results;
 		ws.send(JSON.stringify({"query":query, "search_results": search_results})); //update client with results
+		search_result_promises = search_results.map(paper => doForSearchResult(ws,query,paper));
 
-		look_up_promises = search_results.map( //execute lookup for all search results
-			paper => search_result_lookup(paper)
-			.then(search_result_lookup => {
-				search_result_lookup = search_result_lookup.hits.hits[0]._source;
-				search_result_lookup["paper_title"] = paper.title;
-				ws.send(JSON.stringify({"query":query, "search_result_lookup":search_result_lookup})); //update client with lookup
-				return search_result_lookup;
-			})
-			.catch(error => {
-				return error;
-			}));
-
-		return Promise.all(look_up_promises);
+		return Promise.all(search_result_promises);
 	})
+
 	.then(search_results_lookup => {
 		ws.send(JSON.stringify({"query":query, "complete":true})); //update client query complete
 		return search_results_lookup;
 	})
+
 	.catch(error =>{
 		console.log("error search_results_lookup" + error);
 		return error;
 	});
 }
-function search_result_lookup(paper){
+function doForSearchResult(ws,query,paper){
+	return get_search_result_lookup(paper)
+	.then(search_result_lookup => {
+		ws.send(JSON.stringify({"query":query, "search_result_lookup":search_result_lookup}))//update client lookup
+		return lookupArrayOfCitations(ws,query,search_result_lookup.inCitations,search_result_lookup);
+	}) 
+	.catch(error => {
+		return error;
+	});
+}
+
+function lookupArrayOfCitations(ws,query,arrayOfCitations,search_result_lookup){ //TODO make batch operation
+	console.log("lookupArrayOfCitation");
+
+	if(arrayOfCitations.length > 2){ //TEMP test faster
+		arrayOfCitations = arrayOfCitations.slice(0,2);
+	}
+	console.log(arrayOfCitations);
+	return Promise.all(arrayOfCitations.map(citation => 
+		getPaperBySemanticScholarId(citation)
+		.then(result => {
+			ws.send(JSON.stringify({"query":query,source:search_result_lookup.id, "lookupArrayOfCitation":result}))//update client lookup
+			return result;
+		})
+	))
+}
+function getPaperBySemanticScholarId(id){
+	console.log("getPaperBySemanticScholarId");
+	console.log(id);
+	return elasticsearch_query({
+	  	"size": 1,
+	    query: {
+	      term: {
+	        id: id
+	      }
+	    }
+	})
+	.then(result =>{ //cleanup
+		console.log("result");
+		console.log(result.hits.hits[0]._source.title);
+		var result = result.hits.hits[0]._source;
+		result["type_node"] = "citation";
+		return result;
+	})
+}
+function get_search_result_lookup(paper){
 	console.log("search_result_lookup");
-	console.log(paper);
+	//console.log(paper);
 	if(!paper.title){ //paper cannot be recognized
 		return Promise.resolve(paper.title);
 	}
@@ -89,10 +126,13 @@ function search_result_lookup(paper){
 	        }
 	      }
 	    }
-	})
+	}).then(search_result_lookup => { //seach result lookup is done clean
+		search_result_lookup = search_result_lookup.hits.hits[0]._source;
+		search_result_lookup["paper_title"] = paper.title;
+		return search_result_lookup;
+	}) 
 }
 function elasticsearch_query(query){
-	console.log("elasticsearch_query");
 	return client.search({
 		  index: 'search',
 		  type: 'semanticscholar2',
