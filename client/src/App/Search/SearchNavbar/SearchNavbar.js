@@ -8,9 +8,8 @@ import {
   Nav,
   NavItem,
   NavLink,
-  Container,
   Row,
-  Col,
+  Col
   } from 'reactstrap';
 
 import './SearchNavbar.css'
@@ -32,6 +31,7 @@ class SearchNavbar extends Component{
       isOpen: !this.state.isOpen
     });
   }
+ 
   callbackFromQueryInput = (dataFromChild) => {
     if(dataFromChild.query && this.state.largeHeader){ //first query has been send
       this.setState({
@@ -57,7 +57,7 @@ class SearchNavbar extends Component{
           <Collapse isOpen={this.state.isOpen} navbar>
             <Nav fill className="ml-auto" navbar>
               <NavItem className="searchInput">
-                { this.state.largeHeader ? null : <QueryInput callbackToSearchBar={this.callbackFromQueryInput} query={this.state.query}/> }
+                { this.state.largeHeader ? null : <QueryInput callbackToSearchBar={this.callbackFromQueryInput} query={this.state.query} searchEngine={this.props.cookieSearchEngine}/> }
               </NavItem>
               <IconContext.Provider value={{ className: 'navbar-icons' }}>
               <NavItem>
@@ -75,12 +75,18 @@ class SearchNavbar extends Component{
         </Navbar>
       <Collapse isOpen={this.state.largeHeader}>
         <Row className="init justify-content-center">
-          <Col sm="6" className="align-self-center">
-            <h1 className="text-center">Science Space</h1>
-            <QueryInput callbackToSearchBar={this.callbackFromQueryInput}/>
+          <Col xs="8" xl="5" className="align-self-center">
+          <Row>
+            <h1 className="text-center w-100">Science Space</h1>
+          </Row>
+          <Row >
+            <QueryInput callbackToSearchBar={this.callbackFromQueryInput} searchEngine={this.props.cookieSearchEngine}/>
+          </Row>
+            
           </Col>
         </Row>
       </Collapse>
+
       </div>
     )
   }

@@ -1,118 +1,86 @@
-import * as d3 from "d3";
+import * as d3Base from "d3";
+import {textwrap} from  "d3-textwrap";
+import "./d3Graph.css"
+import {SearchResultNode,TopicNode,CitationNode} from "./nodes/Node.js"
+const d3 = Object.assign(d3Base, { textwrap});
 
 var d3Graph = {};
-d3Graph.prevData ={nodes:[],links:[]};
-d3Graph.create = function(el, props, data) {
-
+d3Graph.create = function(el, props, data,callbackToVisualisation) {
   var svg = d3.select(el).append('svg')
       .attr('class', 'd3')
       .attr('width', props.width)
-      .attr('height', props.height);
-  /**data = {
-  "nodes": [
-    {
-      "id": "Alternative to mental hospital treatment. II. Economic benefit-cost analysis.",
-      "index": 0,
-      "x": 355.4456168380194,
-      "y": 540.9172396888002,
-      "vy": -0.08276031119971376,
-      "vx": -0.05438316198058825,
-      "fx": null,
-      "fy": null
-    },
-    {
-      "id": "Models and helping: naturalistic studies in aiding behavior."
-    },
-    {
-      "id": "Methods for detecting carcinogens and mutagens with the Salmonella/mammalian-microsome mutagenicity test."
-    },
-    {
-      "id": "Alternative to mental hospital treatment. I. Conceptual model, treatment program, and clinical evaluation."
-    }
-  ],
-  "links": [
-    {
-      "source": "Alternative to mental hospital treatment. II. Economic benefit-cost analysis.",
-      "target": "Models and helping: naturalistic studies in aiding behavior.",
-      "labelProperty": "search_results"
-    },
-    {
-      "source": "Models and helping: naturalistic studies in aiding behavior.",
-      "target": "Methods for detecting carcinogens and mutagens with the Salmonella/mammalian-microsome mutagenicity test.",
-      "labelProperty": "search_results"
-    },
-    {
-      "source": "Methods for detecting carcinogens and mutagens with the Salmonella/mammalian-microsome mutagenicity test.",
-      "target": "Alternative to mental hospital treatment. I. Conceptual model, treatment program, and clinical evaluation.",
-      "labelProperty": "search_results"
-    }
-  ]
-}
-*/
-  
+      .attr('height', props.height)
+      
+  this.zoomGroup = svg
+    .append("g")
+    .attr("class", "zoomGroup");
   const height = svg.node().getBoundingClientRect().height;
   const width = svg.node().getBoundingClientRect().width;
 
+  // this.titleWrap = textwrap().bounds({width: height * (this.titleLengthPercentage / 100), height: 100});
+
   this.simulation = d3.forceSimulation(data.nodes) //create force simulation for all nodes and links
-      .force("link", d3.forceLink(data.links).id(d => d.id).distance(200))
+      .force("link", d3.forceLink(data.links).id(d => d.title).distance(100))
       .force("charge", d3.forceManyBody().strength(-1000))
       .force("x", d3.forceX())
       .force("y", d3.forceY())
       .force("center", d3.forceCenter(width / 2, height / 2));
 
-  this.node = svg.append("g") //create group with same styles
-      .attr("font-family", "sans-serif")
-      .attr("font-size", "10px")
-    .selectAll(".node"); //TODO dont understand
 
-  this.link = svg.append("g") //create group with same styles
+  this.nodes = [new SearchResultNode(this.zoomGroup,width,this.drag,this.simulation,callbackToVisualisation),new TopicNode(this.zoomGroup,width,this.drag,this.simulation,callbackToVisualisation),new CitationNode(this.zoomGroup,width,this.drag,this.simulation,callbackToVisualisation)];
+
+  this.link = this.zoomGroup.append("g") //create group with same styles
       .attr("stroke", "#999")
       .attr("stroke-opacity", 0.6)
-      
-    .selectAll(".link");
+      .selectAll(".link");
+
+  var zoomHandler = d3.zoom()
+    .on("zoom", this.zoomAction.bind(this));
+    zoomHandler(svg);
+  
 
   d3Graph.update(el,data);
 };
+d3Graph.zoomAction = function(){
+  this.zoomGroup.attr("transform", d3.event.transform);
+}
 
+d3Graph.label = function(d,context){
 
+}
 d3Graph.destroy = function(el) {
   // Any clean-up would go here
   // in this example there is nothing to do
 };
+
+d3Graph.splitNodes = function(datas,nodeClasses){ //split node into their corresponding classes
+  for (const nodeClass of nodeClasses) {
+    var nodes = [];
+    for (const data of datas) {
+      if(nodeClass.equals(data)){
+          nodes.push(data);
+      }
+    }
+    nodeClass.set(nodes);
+  }
+  return nodeClasses;
+}
+
 d3Graph.update = function(el,data){
-
-
+  console.log("d3Graph UPDATE");
+  this.nodes = this.splitNodes(data.nodes,this.nodes);
+  //console.log(this.nodes);
+  this.nodes.forEach(node => node.update());
+  // const {maxCitations,minCitations} = this.getMinMaxCitations(data);
+  //   console.log("minCitations" + minCitations);
+  // console.log("maxCitations" + maxCitations);
     this.link = this.link.data(data.links);
     this.link.exit().remove();
     this.link = this.link.enter()
             .append('line')
             .merge(this.link);
 
-    this.node = this.node.data(data.nodes); //set new data
-    this.node.exit().remove(); //remove data that is not present anymore
-
-    var newNodes = this.node.enter() //do for new data
-      .append('g')
-      .attr("class","node")
-      .call(this.drag(this.simulation));;
-
-    newNodes.append('circle')
-      .attr("r", function(d){
-        if(d.type_node == "citation"){
-          return 5;
-        }
-
-        return 10;
-      })
-      .attr("fill", "#345340");
-      
-    newNodes.append('text')
-      .attr("text-anchor","middle")
-      .text( function (d) { return d.title; });
-
-    this.node = this.node.merge(newNodes); //merge newdata with older items
-
-  this.simulation.on("tick", this.simulationOnTick.bind(this));
+  this.simulation.on("tick",this.simulationOnTick.bind(this));
   this.simulation.nodes(data.nodes);
   this.simulation.force("link").links(data.links);
   this.simulation.alpha(1).restart();
@@ -127,8 +95,9 @@ d3Graph.simulationOnTick = function(){
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
 
-    this.node
-        .attr("transform",function(d){ return "translate(" + d.x + "," + d.y + ")";});
+      this.nodes.forEach(node => node.node.attr("transform",d => { return "translate(" + d.x + "," + d.y + ")"}));
+
+      
     // this.text
     //   .attr("x", function(d) { return d.x; })
     //   .attr("y", function(d) { return d.y; })

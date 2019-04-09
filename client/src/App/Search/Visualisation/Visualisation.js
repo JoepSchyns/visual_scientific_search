@@ -5,26 +5,37 @@ import d3Graph from './d3Graph';
 
 
 class Visualisation extends Component {
-	constructor(props){
-		super(props);
-  	}
 
 	componentDidMount = () => {
 		console.log("componentDidMount");
-		var el = ReactDOM.findDOMNode(this);
-		console.log(d3Graph);
-		d3Graph.create(el, {
+		this.domElement = ReactDOM.findDOMNode(this);
+		this.addD3();
+		window.addEventListener("resize", this.componentDidUpdate);//update on resize
+	};
+	addD3 = () => {
+		console.log("render");
+		d3Graph.create(this.domElement, {
 		  width: '100%',
 		  height: '100%'
-		}, this.props.data);
-	};
-
+		}, this.props.data,this.callbackFromD3);
+	}
+	callbackFromD3 = (dataFromChild) => {
+			this.props.callbackToSearch(dataFromChild);
+	}
 	componentDidUpdate = () => {
-		console.log("componentDidUpdate");
-		console.log(this.props.data);
 		var el = ReactDOM.findDOMNode(this);
-		d3Graph.update(el, this.props.data);
+
+		if(!this.updateTimeout){
+			d3Graph.update(el, this.props.data);
+			setTimeout(this.updateTimeoutCallback, 500);
+			this.updateTimeout = true;
+		}
+
+		
 	};
+	updateTimeoutCallback = () =>  {
+		this.updateTimeout = false;
+	}
 
 	// getChartState = () => {
 	// 	return {

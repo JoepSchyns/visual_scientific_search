@@ -1,0 +1,5 @@
+pm2 unstartup
+pm2 start --name search_server npm -- start
+pm2 start --name search_client npm -- start
+pm2 save
+pm2 startup -u joep

@@ -1,14 +1,28 @@
-//http://api.semanticscholar.org/
-//https://open.semanticscholar.org/
-//find *.json -exec mongoimport --jsonArray --db search --collection semanticscholar --file {} \;
-//find s2-corpus-* -exec mongoimport ----db search --collection semanticscholar --file {} \;
+import SearchEngine from'./SearchEngine.js'
 
-let scholar = (function () {
-  let request = require('request')
-  let cheerio = require('cheerio')
-  let striptags = require('striptags')
-	let  Bottleneck = require("bottleneck");
-  let limiter = new Bottleneck({
+
+const RESULTS_PER_PAGE = 10
+
+const GOOGLE_SCHOLAR_URL = 'https://scholar.google.com/scholar?hl=en&q='
+const GOOGLE_SCHOLAR_URL_PREFIX = 'https://scholar.google.com'
+
+const ELLIPSIS_HTML_ENTITY = '&#x2026;'
+const ET_AL_NAME = 'et al.'
+const CITATION_COUNT_PREFIX = 'Cited by '
+const RELATED_ARTICLES_PREFIX = 'Related articles'
+
+const STATUS_CODE_FOR_RATE_LIMIT = 503
+const STATUS_MESSAGE_FOR_RATE_LIMIT = 'Service Unavailable'
+const STATUS_MESSAGE_BODY = 'This page appears when Google automatically detects this.requests coming from your computer network which appear to be in violation of the <a href="//www.google.com/policies/terms/">Terms of Service</a>. The block will expire shortly after those this.requests stop.';
+// regex with thanks to http://stackoverflow.com/a/5917250/1449799
+const RESULT_COUNT_RE = /\W*((\d+|\d{1,3}(,\d{3})*)(\.\d+)?) results/;
+export default class Scholar extends SearchEngine {
+  constructor(){
+    super();
+    this.cheerio = require('cheerio');
+    this.striptags = require('striptags')
+    let Bottleneck = require("bottleneck");
+    this.limiter = new Bottleneck({
     reservoir: 100, // initial value
     reservoirRefreshAmount: 100,
     reservoirRefreshInterval: 60 * 10000, // must be divisible by 250
@@ -16,41 +30,29 @@ let scholar = (function () {
     maxConcurrent: 1,
     minTime: 300
 
-  });
-  // 1 per 200 ms ~= 5/s per
-  // https://developers.google.com/webmaster-tools/search-console-api-original/v3/limits
+    });
+    // 1 per 200 ms ~= 5/s per
+    // https://developers.google.com/webmaster-tools/search-console-api-original/v3/limits
 
-  // const limiter.schedule = throttledQueue(100, 100000,false)
-  const RESULTS_PER_PAGE = 10
+    // const this.limiter.schedule = throttledQueue(100, 100000,false)
 
-  const GOOGLE_SCHOLAR_URL = 'https://scholar.google.com/scholar?hl=en&q='
-  const GOOGLE_SCHOLAR_URL_PREFIX = 'https://scholar.google.com'
+  }
 
-  const ELLIPSIS_HTML_ENTITY = '&#x2026;'
-  const ET_AL_NAME = 'et al.'
-  const CITATION_COUNT_PREFIX = 'Cited by '
-  const RELATED_ARTICLES_PREFIX = 'Related articles'
+  //sdfsdf
 
-  const STATUS_CODE_FOR_RATE_LIMIT = 503
-  const STATUS_MESSAGE_FOR_RATE_LIMIT = 'Service Unavailable'
-  const STATUS_MESSAGE_BODY = 'This page appears when Google automatically detects requests coming from your computer network which appear to be in violation of the <a href="//www.google.com/policies/terms/">Terms of Service</a>. The block will expire shortly after those requests stop.'
-
-  // regex with thanks to http://stackoverflow.com/a/5917250/1449799
-  const RESULT_COUNT_RE = /\W*((\d+|\d{1,3}(,\d{3})*)(\.\d+)?) results/
-
-  function scholarResultsCallback (resolve, reject) {
+  scholarResultsCallback(resolve, reject){
     console.log("scholarResultsCallback");
-    return function (error, response, html) {
+    return (error, response, html) => {
       if (error) {
         reject(error)
       } else if (response.statusCode !== 200) {
         if (response.statusCode === STATUS_CODE_FOR_RATE_LIMIT && response.statusMessage === STATUS_MESSAGE_FOR_RATE_LIMIT && response.body.indexOf(STATUS_MESSAGE_BODY) > -1) {
-          reject(new Error('you are being rate-limited by google. you have made too many requests too quickly. see: https://support.google.com/websearch/answer/86640'))
+          reject(new Error('you are being rate-limited by google. you have made too many this.requests too quickly. see: https://support.google.com/websearch/answer/86640'))
         } else {
           reject(new Error('expected statusCode 200 on http response, but got: ' + response.statusCode))
         }
       } else {
-        let $ = cheerio.load(html)
+        let $ = this.cheerio.load(html)
 
         let results = $('.gs_r')
         let resultCount = 0
@@ -65,6 +67,7 @@ let scholar = (function () {
 
         let processedResults = []
         results.each((i, r) => {
+
           $(r).find('.gs_ri h3 span').remove()
           let title = $(r).find('.gs_ri h3').text().trim()
           let url = $(r).find('.gs_ri h3 a').attr('href')
@@ -79,9 +82,13 @@ let scholar = (function () {
           let relatedUrl = ''
           let pdfUrl = $($(r).find('.gs_ggsd a')[0]).attr('href')
 
-          if ($(footerLinks[0]).text().indexOf(CITATION_COUNT_PREFIX) >= 0) {
-            citedCount = $(footerLinks[0]).text().substr(CITATION_COUNT_PREFIX.length)
+          const text = $(footerLinks).text();
+          const index = text.indexOf(CITATION_COUNT_PREFIX);
+          console.log("index " + index)
+          if(index >= 0) {
+            citedCount = parseInt($(footerLinks).text().substr(CITATION_COUNT_PREFIX.length).match(/\d+/g)[0]);
           }
+          console.log(citedCount);
           if ($(footerLinks[0]).attr &&
             $(footerLinks[0]).attr('href') &&
             $(footerLinks[0]).attr('href').length > 0) {
@@ -90,10 +97,7 @@ let scholar = (function () {
           if (footerLinks &&
             footerLinks.length &&
             footerLinks.length > 0) {
-            if ($(footerLinks[0]).text &&
-              $(footerLinks[0]).text().indexOf(CITATION_COUNT_PREFIX) >= 0) {
-              citedCount = $(footerLinks[0]).text().substr(CITATION_COUNT_PREFIX.length)
-            }
+           
 
             if ($(footerLinks[1]).text &&
               $(footerLinks[1]).text().indexOf(RELATED_ARTICLES_PREFIX) >= 0 &&
@@ -121,13 +125,13 @@ let scholar = (function () {
               htmlAuthorNames.unshift(ET_AL_NAME)
             }
             authors = htmlAuthorNames.map(name => {
-              let tmp = cheerio.load(name)
+              let tmp = this.cheerio.load(name)
               let authorObj = {
                 name: '',
                 url: ''
               }
               if (tmp('a').length === 0) {
-                authorObj.name = striptags(name)
+                authorObj.name = this.striptags(name)
               } else {
                 authorObj.name = tmp('a').text()
                 authorObj.url = GOOGLE_SCHOLAR_URL_PREFIX + tmp('a').attr('href')
@@ -147,7 +151,6 @@ let scholar = (function () {
             pdf: pdfUrl
           })
         })
-
         let resultsCountString = $('#gs_ab_md').text()
         if (resultsCountString && resultsCountString.trim().length > 0) {
           let matches = RESULT_COUNT_RE.exec(resultsCountString)
@@ -165,26 +168,26 @@ let scholar = (function () {
           count: resultCount,
           nextUrl: nextUrl,
           prevUrl: prevUrl,
-          next: function () {
-            let p = new Promise(function (resolve, reject) {
-              limiter.schedule(() => {
+          next: () => {
+            let p = new Promise((resolve, reject) => {
+              this.limiter.schedule(() => {
                   var requestOptions = {
-                    jar: true
+                    jar: true,
                   }
                   requestOptions.url = nextUrl
-                  request(requestOptions, scholarResultsCallback(resolve, reject))
+                  this.request(requestOptions, this.scholarResultsCallback(resolve, reject))
               })
             })
             return p
           },
-          previous: function () {
-            let p = new Promise(function (resolve, reject) {
-              limiter.schedule(() => {
+          previous: () => {
+            let p = new Promise((resolve, reject) => {
+              this.limiter.schedule(() => {
                   var requestOptions = {
                     jar: true
                   }
                   requestOptions.url = prevUrl
-                  request(requestOptions, scholarResultsCallback(resolve, reject))
+                  this.request(requestOptions, this.scholarResultsCallback(resolve, reject))
               })
             })
             return p
@@ -193,25 +196,24 @@ let scholar = (function () {
       }
     }
   }
-
-  function search (query) {
+  search(query) {
   	console.log("new search: " + query + " " + new Date().toUTCString());
-    let p = new Promise(function (resolve, reject) {
+    let p = new Promise((resolve, reject) => {
     	console.log("new promise: " + query + " " + new Date().toUTCString());
-      limiter.schedule(() => {
+      this.limiter.schedule(() => {
       	console.log("new throttle: " + query + " " + new Date().toUTCString());
           var requestOptions = {
             jar: true
           }
           requestOptions.url = encodeURI(GOOGLE_SCHOLAR_URL + query)
-          request(requestOptions, scholarResultsCallback(resolve, reject))
+          this.request(requestOptions, this.scholarResultsCallback(resolve, reject))
         })
       })
     return p
   }
 
-  function all (query) {
-    return search(query)
+  all(query){
+    return this.search(query)
       .then(resultsObj => {
         //  eg n=111 but i have 10 already so 101 remain,
         let remainingResultsCount = resultsObj.count - resultsObj.results.length
@@ -223,7 +225,7 @@ let scholar = (function () {
             pageNumbers.push(i)
           }
           return Promise.all(pageNumbers.map(i => {
-            return search(query + '&start=' + i * RESULTS_PER_PAGE)
+            return this.search(query + '&start=' + i * RESULTS_PER_PAGE)
               .then(laterPagesResultsObj => {
                 return laterPagesResultsObj.results
               })
@@ -240,11 +242,4 @@ let scholar = (function () {
         }
       })
   }
-
-  return {
-    search: search,
-    all: all
-  }
-})()
-
-module.exports = scholar
+}

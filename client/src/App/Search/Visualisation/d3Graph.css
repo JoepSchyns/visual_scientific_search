@@ -1,0 +1,20 @@
+svg {cursor: -webkit-grab; cursor: grab;}
+.node circle{
+	fill:#ccc;
+}
+.lookup circle{
+		fill:#afb5f2;
+}
+.nodeText > * > *{
+	background-color: #f4f4f4;
+	color: #525252;
+	border-radius: 2px;
+	padding:4px;
+}
+.nodeLabel >text {
+	fill: #6976e5;
+}
+.nodeLabel > rect{
+	fill: #f4f4f4;
+	border-radius: 2px;
+}

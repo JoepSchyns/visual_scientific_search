@@ -4,10 +4,11 @@
 .navbar-icons{
    font-size:25px;
 }
-.searchInput{
-    width: 600px !important;
-
-
+.active{
+  background-color: #6976e5 !important;
+}
+button:active {
+  background-color: #ccc !important;
 }
 .form-group{
     margin-bottom:0;
@@ -35,12 +36,12 @@ input[type="color"]:focus,
 }
 
 #query{
-    border-top-left-radius: 10px !important;
-    border-bottom-left-radius: 10px!important;
+    border-top-left-radius: 5px !important;
+    border-bottom-left-radius: 5px!important;
 }
 .btn-secondary{
-    border-top-right-radius: 10px !important;
-    border-bottom-right-radius: 10px!important;
+    border-top-right-radius: 5px !important;
+    border-bottom-right-radius: 5px!important;
 }
 .init{
     height: 400px;

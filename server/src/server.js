@@ -1,8 +1,10 @@
 const express = require('express');
 const path = require('path');
-const scholar = require('./scholar')
-var elasticsearch = require('elasticsearch');
 
+import {getSearchEngine} from './SearchEngine/SearchHandler'
+
+var elasticsearch = require('elasticsearch');
+console.log(require("os").userInfo());
 var client = new elasticsearch.Client({
   host: 'localhost:9200'
 });
@@ -39,19 +41,21 @@ wss.on('connection', function connection(ws) {
   	var message = JSON.parse(message);
   	console.log(message);
     if(message.query){
-    	handleQuery(ws,message.query);
+    	handleQuery(ws,message);
     }
   });
  
   //
 });
-function handleQuery(ws,query){
-	return scholar.search(query) //get results from google scholar
-
+function handleQuery(ws,message){
+	const query = message.query;
+	var searchEngine =  getSearchEngine(message.searchEngine);
+	return searchEngine.search(query) //get results from google scholar
 	.then(result => {
-		search_results = result.results;
+		console.log("results in");
+		const search_results = result.results;
 		ws.send(JSON.stringify({"query":query, "search_results": search_results})); //update client with results
-		search_result_promises = search_results.map(paper => doForSearchResult(ws,query,paper));
+		const search_result_promises = search_results.map(paper => doForSearchResult(ws,query,paper));
 
 		return Promise.all(search_result_promises);
 	})
@@ -67,8 +71,10 @@ function handleQuery(ws,query){
 	});
 }
 function doForSearchResult(ws,query,paper){
+	//console.log("doForSearchResult");
 	return get_search_result_lookup(paper)
 	.then(search_result_lookup => {
+		//console.log("search_result_lookup");
 		ws.send(JSON.stringify({"query":query, "search_result_lookup":search_result_lookup}))//update client lookup
 		return lookupArrayOfCitations(ws,query,search_result_lookup.inCitations,search_result_lookup);
 	}) 
@@ -78,25 +84,27 @@ function doForSearchResult(ws,query,paper){
 }
 
 function lookupArrayOfCitations(ws,query,arrayOfCitations,search_result_lookup){ //TODO make batch operation
-	console.log("lookupArrayOfCitation");
-
+	//console.log("lookupArrayOfCitation");
+	if(!arrayOfCitations){
+		return Promise.reject("no citations");
+	}
 	if(arrayOfCitations.length > 2){ //TEMP test faster
 		arrayOfCitations = arrayOfCitations.slice(0,2);
 	}
-	console.log(arrayOfCitations);
+	//console.log(arrayOfCitations);
 	return Promise.all(arrayOfCitations.map(citation => 
 		getPaperBySemanticScholarId(citation)
 		.then(result => {
-			ws.send(JSON.stringify({"query":query,source:search_result_lookup.id, "lookupArrayOfCitation":result}))//update client lookup
+			ws.send(JSON.stringify({"query":query,source_id:search_result_lookup.id, "lookupArrayOfCitation":result}))//update client lookup
 			return result;
 		})
 	))
 }
 function getPaperBySemanticScholarId(id){
-	console.log("getPaperBySemanticScholarId");
-	console.log(id);
+	//console.log("getPaperBySemanticScholarId");
+	//console.log(id);
 	return elasticsearch_query({
-	  	"size": 1,
+	  	"terminate_after":1,
 	    query: {
 	      term: {
 	        id: id
@@ -104,31 +112,47 @@ function getPaperBySemanticScholarId(id){
 	    }
 	})
 	.then(result =>{ //cleanup
-		console.log("result");
-		console.log(result.hits.hits[0]._source.title);
+		//console.log("result");
+		//console.log(result.hits.hits[0]._source.title);
 		var result = result.hits.hits[0]._source;
 		result["type_node"] = "citation";
 		return result;
 	})
 }
 function get_search_result_lookup(paper){
-	console.log("search_result_lookup");
-	//console.log(paper);
-	if(!paper.title){ //paper cannot be recognized
+	//console.log("search_result_lookup");
+	//console.log(paper.title);
+	var promise;
+	// if(paper.doi){ //if has dio search for dio
+	// 	console.log("doi " + paper.doi)
+	// 	promise = elasticsearch_query({
+	// 	  	"size": 1,
+	// 	    query: {
+	// 	      term: {
+	// 	        doi: paper.doi
+	// 	      }
+	// 	    }
+	// 	});
+	// }else 
+	if(paper.title){
+		promise = elasticsearch_query({
+		  	"terminate_after":1, //stop after first is found
+		    query: {
+		      match_phrase: {
+		        title: {
+		        	query: paper.title
+		        }
+		      }
+		    }
+		});
+	} else{ //paper cannot be recognized
 		return Promise.resolve(paper.title);
 	}
-	return elasticsearch_query({
-	  	"size": 1,
-	    query: {
-	      match_phrase: {
-	        title: {
-	        	query: paper.title
-	        }
-	      }
-	    }
-	}).then(search_result_lookup => { //seach result lookup is done clean
+	return promise.then(search_result_lookup => { //seach result lookup is done clean
+		//console.log("result:")
+		//console.log(search_result_lookup.hits.total + " " + paper.title)
 		search_result_lookup = search_result_lookup.hits.hits[0]._source;
-		search_result_lookup["paper_title"] = paper.title;
+		search_result_lookup["source_title"] = paper.title;
 		return search_result_lookup;
 	}) 
 }
@@ -144,7 +168,7 @@ app.post('/api/search', (req,res) => {
 	res.setHeader('Content-Type', 'application/json');
 	const content = req.body;
 	const query = content.query;
-	console.log(query);
+	//console.log(query);
 
 	
 });

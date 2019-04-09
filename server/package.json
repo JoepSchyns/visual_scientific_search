@@ -4,6 +4,7 @@
   "description": "scientific search engine using scientific networks",
   "main": "server.js",
   "scripts": {
+    "start": "nodemon --exec babel-node --ignore /../../**/src src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/JoepSchyns/visual_scientific_search/issues"
   },
-  "homepage": "http://joep.space"
+  "homepage": "http://joep.space",
+  "dependencies": {
+    "@babel/preset-env": "^7.4.2"
+  }
 }

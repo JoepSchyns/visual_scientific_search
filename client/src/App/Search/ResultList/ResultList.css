@@ -6,9 +6,17 @@
 	height: 1000px;
 	overflow-y: scroll;
 }
+.list-group-item{
+	padding:8px;
+}
 .list-group-item-heading{
 	font-size: 15px;
 }
 .list-group-item-text{
-	font-size: 10px;
+	font-size: 13px;
+	margin:0;
+}
+.authors{
+	font-size: 14px;
+	color: #006621;
 }
