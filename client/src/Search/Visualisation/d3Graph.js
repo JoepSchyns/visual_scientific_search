@@ -5,7 +5,15 @@ import {SearchResultNode,TopicNode,CitationNode} from "./nodes/Node.js"
 const d3 = Object.assign(d3Base, { textwrap});
 
 var d3Graph = {};
-d3Graph.create = function(el, props, data,callbackToVisualisation) {
+d3Graph.create = function(el, props, data,callbackToVisualisation,query) {
+  data.nodes = data.nodes[query];
+  data.links = data.links[query];
+  if(!data.nodes){ //empty if not defined
+    data.nodes = [];
+  }
+  if(!data.links){
+    data.links = [];
+  }
   console.log("create");
   var svg = d3.select(el).append('svg')
       .attr('class', 'd3')
@@ -69,7 +77,16 @@ d3Graph.splitNodes = function(datas,nodeClasses){ //split node into their corres
   return nodeClasses;
 }
 
-d3Graph.update = function(el,data){
+d3Graph.update = function(el,data,query){
+  data.nodes = data.nodes[query];
+  data.links = data.links[query];
+  console.log(data);
+  if(!data.nodes){ //empty if not defined
+    data.nodes = [];
+  }
+  if(!data.links){
+    data.links = [];
+  }
   console.log("d3Graph UPDATE");
   this.nodes = this.splitNodes(data.nodes,this.nodes);
   //console.log(this.nodes);

@@ -9,6 +9,7 @@ render((
     <Router history={history}>
     	<Switch>
       		<Route component={Search}/>
+      		<Route path="/selection" component={Search}/>
 		</Switch>
     </Router>
 ), document.getElementById('root'));

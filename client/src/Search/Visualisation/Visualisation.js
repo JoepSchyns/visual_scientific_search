@@ -17,7 +17,7 @@ class Visualisation extends Component {
 		d3Graph.create(this.domElement, {
 		  width: '100%',
 		  height: '100%'
-		}, this.props.data,this.callbackFromD3);
+		}, this.props.data,this.callbackFromD3,this.props.query);
 	}
 	callbackFromD3 = (dataFromChild) => {
 		console.log("callbackFromD3");
@@ -33,7 +33,7 @@ class Visualisation extends Component {
 	// }
 	componentDidUpdate = (prevprops) => {
 		var el = ReactDOM.findDOMNode(this);
-		d3Graph.update(el, this.props.data);
+		d3Graph.update(el, this.props.data,this.props.query);
 	};
 	resizeCallback = (event) =>{
 		if(!this.updateTimeout){
