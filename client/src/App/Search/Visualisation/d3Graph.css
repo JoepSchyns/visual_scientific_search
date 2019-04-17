@@ -6,6 +6,7 @@ svg {cursor: -webkit-grab; cursor: grab;}
 		fill:#afb5f2;
 }
 .nodeText > * > *{
+	cursor: -webkit-pointer; cursor: pointer;
 	background-color: #f4f4f4;
 	color: #525252;
 	border-radius: 2px;

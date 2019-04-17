@@ -6,6 +6,7 @@ const d3 = Object.assign(d3Base, { textwrap});
 
 var d3Graph = {};
 d3Graph.create = function(el, props, data,callbackToVisualisation) {
+  console.log("create");
   var svg = d3.select(el).append('svg')
       .attr('class', 'd3')
       .attr('width', props.width)
@@ -25,6 +26,8 @@ d3Graph.create = function(el, props, data,callbackToVisualisation) {
       .force("x", d3.forceX())
       .force("y", d3.forceY())
       .force("center", d3.forceCenter(width / 2, height / 2));
+
+  this.simulation.on("tick",this.simulationOnTick.bind(this));
 
 
   this.nodes = [new SearchResultNode(this.zoomGroup,width,this.drag,this.simulation,callbackToVisualisation),new TopicNode(this.zoomGroup,width,this.drag,this.simulation,callbackToVisualisation),new CitationNode(this.zoomGroup,width,this.drag,this.simulation,callbackToVisualisation)];
@@ -80,10 +83,10 @@ d3Graph.update = function(el,data){
             .append('line')
             .merge(this.link);
 
-  this.simulation.on("tick",this.simulationOnTick.bind(this));
+
   this.simulation.nodes(data.nodes);
   this.simulation.force("link").links(data.links);
-  this.simulation.alpha(1).restart();
+  //this.simulation.alpha(1).restart();
 
   //invalidation.then(() => simulation.stop());
 }
@@ -105,6 +108,7 @@ d3Graph.simulationOnTick = function(){
 d3Graph.drag = function(simulation){
   function dragstarted(d) {
     if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    console.log(d.x);
     d.fx = d.x;
     d.fy = d.y;
   }
@@ -115,7 +119,7 @@ d3Graph.drag = function(simulation){
   }
   
   function dragended(d) {
-    if (!d3.event.active) simulation.alphaTarget(0);
+   if (!d3.event.active) simulation.alphaTarget(0);
     d.fx = null;
     d.fy = null;
   }

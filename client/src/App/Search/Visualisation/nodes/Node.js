@@ -26,12 +26,11 @@ export class Node{
 	createNode(d,context,labelText,cssClassName,lengthPercentage){
 		d.classed(cssClassName,true)
 			.append('circle')
-	      	.attr("r", d => context.circleSize(d,context))
-	      		      .on("mouseover", context.handleMouseOver)
-	      .on("click", context.handleMouseClick);
+	      	.attr("r", d => context.circleSize(d,context));
 
 	    const titleWrap = textwrap().bounds({width: context.visualisationWidth * (lengthPercentage / 100), height: 100});
-	    var textField = d.append('g'); 
+	    var textField = d.append('g')
+	      			.on("click", context.handleMouseClick); 
 	      textField.attr("class","nodeText")
 	      .style("transform","translateX( -" + lengthPercentage / 2 + "% )")
 	      .append('text')
@@ -44,9 +43,7 @@ export class Node{
 	handleMouseClick = (d,i) =>{
 		this.callbackToD3({event:"handleMouseClick",data:d});
 	}
-	handleMouseOver = (d,i) =>{
-		this.callbackToD3({event:"handleMouseOver",data:d});
-	}
+
 	labels(d,context,labelText){
 		const height= 1;
 		var labelGroup = d.append('g')
@@ -76,7 +73,6 @@ export class Node{
 	      .attr("class","node")
 	      .call(this.drag(this.simulation) //can onlt drag non search results
 	      );
-
 	    newNodes.call(this.createSearchNodeWithSettings,this);
 
 	    this.node = this.node.merge(newNodes); //merge newdata with older items

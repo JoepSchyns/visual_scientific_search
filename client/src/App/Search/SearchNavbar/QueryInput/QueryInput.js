@@ -23,8 +23,8 @@ class QueryInput extends Component {
       dropdownOpen:false 
     };
   }
-  componentDidMount = () => {
-    console.log("componentDidMount");
+  componentDidMount = () => { //select input field on mount
+    // console.log("componentDidMount");
     const domElement = ReactDOM.findDOMNode(this);
     const input = domElement.querySelector("#query")
     input.focus();

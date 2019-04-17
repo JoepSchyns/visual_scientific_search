@@ -13,7 +13,7 @@ class App extends Component {//for some reason with cookies this is an object no
     return (
       <Switch>
         
-          <Route exact path='/' component={App}/>
+          <Route default path='/' component={App}/>
 
         
       </Switch>

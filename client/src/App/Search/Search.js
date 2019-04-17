@@ -4,14 +4,16 @@ import ResultList from './ResultList/ResultList'
 import Visualisation from './Visualisation/Visualisation'
 import { instanceOf } from 'prop-types';
 import { withCookies, Cookies } from 'react-cookie';
+import { withRouter } from "react-router";
 import "./Search.css"
+import history from '../../history';
 import {
   Container,
   Row,
   Col
   } from 'reactstrap';
 import { StageSpinner } from "react-spinners-kit";
-
+const queryString = require('query-string');
 
 class Search extends Component{
 	 static propTypes = {
@@ -19,9 +21,23 @@ class Search extends Component{
    	};
 	constructor(props){
 		super(props);
-		const { cookies } = props;
-		console.log(cookies.get('searchEngine'));
-		this.state = {
+		
+		
+//		console.log(cookies.get('searchEngine'));
+		console.log(props);
+		if(this.props.location.state && this.props.location.state.selected_result){
+			this.props.location.state.nodes = [this.props.location.state.selected_result];
+			this.props.location.state.links = [];
+			this.setStateFromHistory(this.props.location.state);
+			this.state.selected_result = {title:this.props.location.state.selected_result.title,description:this.props.location.state.selected_result.title}; //set the info field to the selected node
+
+		}
+		else if(this.props.location.state && this.props.location.state.nodes){ //if is an redirect
+			this.setStateFromHistory(this.props.location.state);
+
+		}else{ //if is new
+			const { cookies } = props;
+			this.state = {
 			query:null,
 			search_results_lookup: null,
 			search_results:null,
@@ -30,8 +46,23 @@ class Search extends Component{
 			loading:true,
 			cookieSearchEngine:cookies.get('searchEngine'),
 			selected_result:{title:'select a item',description:""}
+			};
+		}
+		
 
-		};
+  	}
+  	setStateFromHistory = (history) =>{
+  		const { cookies } = this.props;
+  		this.state = {
+			query:this.props.location.state.query,
+			search_results_lookup: this.props.location.state.search_results_lookup,
+			search_results:this.props.location.state.search_results,
+			nodes: this.props.location.state.nodes,
+			links:this.props.location.state.links,
+			loading:this.props.location.state.loading,
+			cookieSearchEngine:cookies.get('searchEngine'),
+			selected_result:{title:'select a item',description:""}
+			};
   	}
   	setCookie = (name,value) =>{
   		const { cookies } = this.props;
@@ -112,6 +143,7 @@ class Search extends Component{
   			links: [...prevState.links, {source:this.state.nodes[sourceNodeIndex] , target:dataFromChild.lookupArrayOfCitation}]
 		}));
   	}
+
 	callbackFromSearchBar = (dataFromChild) => {
 	   	if(dataFromChild.error){ //query returned error
 
@@ -127,18 +159,52 @@ class Search extends Component{
 
 	   	dataFromChild.lookupArrayOfCitation && this.handleNewlookupArrayOfCitation(dataFromChild); //add new citation lookup data	   	
   	};
+
   	callbackFromVisualisation = (dataFromChild) => {
   		console.log(dataFromChild);
-  		if(dataFromChild.event){
-  			this.setState({selected_result:dataFromChild.data});
+  		 if(dataFromChild.event === "handleMouseClick"){
+  		 	 if(!this.props.location.state){ //if state is not yet saved for this history
+  		 	 	console.log("replace");
+  				this.props.history.replace('/',this.state);
+  			}
+
+  			var currentState = this.state; //save current state before page refresh
+  			
+  			currentState['selected_result'] = dataFromChild.data;
+  			this.props.history.push(
+  				'/title=' + 
+  						encodeURIComponent(
+  							dataFromChild.data.title
+  						)
+  					+
+  				'&id=' +
+  				dataFromChild.data.id
+  					
+  				,currentState);
   		}
+  	}
+  	storeOldNodesAndLinks(nodes,links){
+  		const data = {nodes:nodes,links:links};
+  		this.setState(prevState => ({
+  			oldData: [...prevState.oldData, data],
+  			selectedOldData:prevState.oldData.length
+		}));
+  	}
+  	restoreOldNodesAndLinks(){
+  		if(!this.state.selectedOldData - 1 > 0){
+  			console.error("no more history")
+  		}
+  		this.setState(prevState => ({
+  			nodes: prevState.oldData.nodes[this.state.selectedOldData - 1],
+  			links:prevState.oldData.links[this.state.selectedOldData - 1]
+		}));
   	}
 
 	render(){
 		return(
 			<div >
 			<Container fluid className={"h-100 d-flex flex-column"} style={{padding:0,overflow:"hidden"}}>
-				<SearchNavbar callbackToSearch={this.callbackFromSearchBar} cookieSearchEngine={this.state.cookieSearchEngine}/>
+				<SearchNavbar query={this.state.query} callbackToSearch={this.callbackFromSearchBar} cookieSearchEngine={this.state.cookieSearchEngine}/>
 			<Row  className={"flex-fill"}>
 				<Col xs="9">
 
@@ -168,4 +234,4 @@ class Search extends Component{
 		);
 	}
 }
-export default withCookies(Search);
+export default withRouter(withCookies(Search));

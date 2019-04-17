@@ -10,7 +10,7 @@ class Visualisation extends Component {
 		console.log("componentDidMount");
 		this.domElement = ReactDOM.findDOMNode(this);
 		this.addD3();
-		window.addEventListener("resize", this.componentDidUpdate);//update on resize
+		window.addEventListener("resize", this.resizeCallback);//update on resize
 	};
 	addD3 = () => {
 		console.log("render");
@@ -20,19 +20,28 @@ class Visualisation extends Component {
 		}, this.props.data,this.callbackFromD3);
 	}
 	callbackFromD3 = (dataFromChild) => {
+		console.log("callbackFromD3");
 			this.props.callbackToSearch(dataFromChild);
 	}
-	componentDidUpdate = () => {
+	// shouldComponentUpdate(nextProps, nextState) {
+ //  		console.log("shouldComponentUpdate");
+ //  		console.log(nextProps.data !== this.props.data);
+ //  		if(nextProps.data !== this.props.data){
+ //  			return true;
+ //  		}
+ //  		return false;
+	// }
+	componentDidUpdate = (prevprops) => {
 		var el = ReactDOM.findDOMNode(this);
-
+		d3Graph.update(el, this.props.data);
+	};
+	resizeCallback = (event) =>{
 		if(!this.updateTimeout){
-			d3Graph.update(el, this.props.data);
-			setTimeout(this.updateTimeoutCallback, 500);
+			this.componentDidUpdate();
+			setTimeout(this.updateTimeoutCallback, 250);
 			this.updateTimeout = true;
 		}
-
-		
-	};
+	}
 	updateTimeoutCallback = () =>  {
 		this.updateTimeout = false;
 	}

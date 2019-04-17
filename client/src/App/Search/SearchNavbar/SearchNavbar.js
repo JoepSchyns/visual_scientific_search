@@ -22,7 +22,7 @@ class SearchNavbar extends Component{
 
     this.state = {
       isOpen: false,
-      largeHeader: true
+      largeHeader: props.query === undefined
     };
   }
 
