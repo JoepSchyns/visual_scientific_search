@@ -3,20 +3,17 @@ export default class SearchDataHandler{
 		this.parent = parent;//enable to set state of parent component
 	}
 	handleNewLookupData = (dataFromChild) =>{
-			const indexNodes = this.parent.state.nodes[dataFromChild.query].findIndex(x => x.title === dataFromChild.search_result_lookup.source_title); //get element added for search_result list by 
+			const indexNodes = this.parent.state["nodes_" + dataFromChild.query].findIndex(x => x.title === dataFromChild.search_result_lookup.source_title); //get element added for search_result list by 
 		if(indexNodes === -1){
 			console.error("title of node not found");
 			return false;
 		}
 
-		var nodes = this.parent.state.nodes[dataFromChild.query]; //update nodes with new lookup
+		var nodes = this.parent.state["nodes_" + dataFromChild.query]; //update nodes with new lookup
 		nodes[indexNodes]['lookup'] = dataFromChild.search_result_lookup;
 
 		this.parent.setState(prevState => ({
-				nodes: {
-					...prevState.nodes,
-					[dataFromChild.query]:nodes //add nodes and store the query that requested them
-				}
+				["nodes_" +  dataFromChild.query]:nodes
 		}));
 		this.handleNewTopics(nodes[indexNodes],dataFromChild.search_result_lookup.entities,dataFromChild.query);
 	}
@@ -24,14 +21,9 @@ export default class SearchDataHandler{
 		topics = topics.map(topic => {return{title:topic,topic:true}});
 		const links = topics.map(topic => {return {source:source,target:topic}});
 		this.parent.setState(prevState => ({
-			nodes: {
-				...prevState.nodes,
-				[query]: [...prevState.nodes[query], ...topics]
-			},
-			links: {
-				...prevState.links,
-				[query]:[...prevState.links[query], ...links]	
-			}
+			["nodes_" +  query]:[...prevState["nodes_" +  query], ...topics]	,
+			["links_" +  query]:[...prevState["links_" +  query], ...links]	
+			
 		}));
 	}
 	handleNewQuery(dataFromChild){//new query is send reset
@@ -60,17 +52,13 @@ export default class SearchDataHandler{
 				prevNode = node;
 			}
 		}
-		this.parent.setState(prevState => ({
+			this.parent.setState({
 			search_results:dataFromChild.search_results,
-			nodes:{
-				...prevState.nodes,
-				[dataFromChild.query]:nodes
-			},
-			links:{
-				...prevState.links,
-				[dataFromChild.query]:links
-			}
-			})); // search_results
+			["nodes_" +  dataFromChild.query] :nodes
+			,
+			["links_" +  dataFromChild.query] :links
+		
+			}); // search_results
 	}
 	handleNewlookupArrayOfCitation = (dataFromChild) => {
 		console.log("lookupArrayOfCitation");
@@ -81,14 +69,10 @@ export default class SearchDataHandler{
 		}
 		dataFromChild.lookupArrayOfCitation['citation'] = true; //annotate
 		this.parent.setState(prevState => ({
-			nodes: {
-				...prevState.nodes,
-				[dataFromChild.query]:[...prevState.nodes, dataFromChild.lookupArrayOfCitation]
-			},
-			links: {
-				...prevState.links,
-				[dataFromChild.query]:[...prevState.links, {source:this.parent.state.nodes[sourceNodeIndex] , target:dataFromChild.lookupArrayOfCitation}]
+			["nodes_" +  dataFromChild.query]:[...prevState["nodes_" +  dataFromChild.query], dataFromChild.lookupArrayOfCitation]
+			,
+			["links_" +  dataFromChild.query]: [...prevState["links_" +  dataFromChild.query], {source:this.parent.state.nodes[sourceNodeIndex] , target:dataFromChild.lookupArrayOfCitation}]
 			}
-		}));
+		));
 	}
 }

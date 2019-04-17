@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import SearchNavbar from './SearchNavbar/SearchNavbar';
 import ResultList from './ResultList/ResultList'
 import Visualisation from './Visualisation/Visualisation'
-
+import Websocket from 'react-websocket';
 import { instanceOf } from 'prop-types';
 import { withCookies, Cookies } from 'react-cookie';
 import { withRouter } from "react-router";
@@ -17,46 +17,39 @@ import { StageSpinner } from "react-spinners-kit";
 
 class Search extends Component{
 	constructor(props){
+		console.log("constructor");
 		super(props);
 		this.searchDataHandler = new SearchDataHandler(this);
 
-
-		if(this.props.location.state && this.props.location.state.selected_result){ //if is redirect and item is selected
-			this.setStateFromHistory(this.props.location.state);
-			this.state.selected_result = {title:this.props.location.state.selected_result.title,description:this.props.location.state.selected_result.title}; //set the info field to the selected node
-		}
-		else if(this.props.location.state && this.props.location.state.nodes){ //if is an redirect
-			this.setStateFromHistory(this.props.location.state);
-
-		}else{ //if is new
-			const { cookies } = props;
-			this.state = {
-			query:null,
-			search_results_lookup: null,
-			search_results:null,
-			nodes: [],
-			links:[],
-			loading:true,
-			cookieSearchEngine:cookies.get('searchEngine'),
-			selected_result:{title:'select a item',description:""}
-			};
-		}
+		const { cookies } = props;
+		this.state = {
+		query:null,
+		search_results_lookup: null,
+		search_results:null,
+		nodes: [],
+		links:[],
+		loading:true,
+		cookieSearchEngine:cookies.get('searchEngine'),
+		selected_result:{title:'select a item',description:""}
+		};
 		
-
   	}
-  	setStateFromHistory = (history) =>{
-  		const { cookies } = this.props;
-  		this.state = {
+  	componentDidUpdate(prevProps,prevState) {
+  		if(prevProps.location.pathname !== this.props.location.pathname){ //redirect
+  			this.setState({
 			query:this.props.location.state.query,
 			search_results_lookup: this.props.location.state.search_results_lookup,
 			search_results:this.props.location.state.search_results,
 			nodes: this.props.location.state.nodes,
 			links:this.props.location.state.links,
 			loading:this.props.location.state.loading,
-			cookieSearchEngine:cookies.get('searchEngine'),
-			selected_result:{title:'select a item',description:""}
-			};
-  	}
+			selected_result:this.props.location.state.selected_result
+			});
+			this.sendMessage(JSON.stringify({selected_result:this.state.selected_result}));
+  		}
+	
+	}
+
   	setCookie = (name,value) =>{
   		const { cookies } = this.props;
   		if(cookies.get('searchEngine') !== value){
@@ -76,7 +69,7 @@ class Search extends Component{
 	   	dataFromChild.search_result_lookup && this.searchDataHandler.handleNewLookupData(dataFromChild); 
 	   	
 	   	dataFromChild.search_results && this.searchDataHandler.handleNewSearchResults(dataFromChild); //query has response
-	   	console.log(this.state.nodes[this.state.query]);
+	   	console.log(this.state["nodes_" + this.state.query]);
 
 	   	dataFromChild.lookupArrayOfCitation && this.searchDataHandler.handleNewlookupArrayOfCitation(dataFromChild); //add new citation lookup data	   	
   	};
@@ -91,18 +84,30 @@ class Search extends Component{
   			var currentState = this.state; //save current state before page refresh
   			
   			currentState['selected_result'] = dataFromChild.data;
+  			currentState['query'] = dataFromChild.data.title;
   			this.props.history.push(
-  				'selection/title=' + 
+  				'/selection/title=' + 
   						encodeURIComponent(
   							dataFromChild.data.title
   						)
-  					+
-  				'&id=' +
-  				dataFromChild.data.id
-  					
   				,currentState);
   		}
   	}
+	handleData = (data) =>{
+	  let result = JSON.parse(data);
+	  console.log(result);
+	  this.callbackFromSearchBar(result);     //passdata
+	}
+	handleOpen = ()  =>{
+	console.log("connected:)");
+	}
+	handleClose = () =>{
+	console.log("disconnected:(");
+	}
+
+	sendMessage = (message) =>{
+	this.refWebSocket.sendMessage(message);
+	}
 
 	render(){
 		return(
@@ -112,7 +117,7 @@ class Search extends Component{
 					<Row  className={"flex-fill"}>
 						<Col xs="9">
 
-							{this.state.nodes[this.state.query] ?
+							{!this.state["nodes_" + this.state.query] ?
 								<StageSpinner
 					                size={30}
 					                color="#b59bef"
@@ -120,8 +125,8 @@ class Search extends Component{
 					            :
 								<Visualisation
 									callbackToSearch={this.callbackFromVisualisation}
-								 	data={{nodes:this.state.nodes,links:this.state.links}}
-								 	query={this.state.query}
+								 	nodes={this.state["nodes_" + this.state.query]}
+								 	links={this.state["links_" + this.state.query]}
 
 			 					/> 
 			 				}
@@ -135,6 +140,16 @@ class Search extends Component{
 						</Col>						
 					</Row>
 				</Container>
+				<Websocket url='ws://joep.space:1818/'
+		          onMessage={this.handleData}
+		          onOpen={this.handleOpen} onClose={this.handleClose}
+		          reconnect={true} debug={true}
+		          ref={
+		            Websocket => {
+		              this.refWebSocket = Websocket;
+		            }                         
+		          }
+		          />
 	      	</div>
 		);
 	}

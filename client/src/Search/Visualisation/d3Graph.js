@@ -6,8 +6,6 @@ const d3 = Object.assign(d3Base, { textwrap});
 
 var d3Graph = {};
 d3Graph.create = function(el, props, data,callbackToVisualisation,query) {
-  data.nodes = data.nodes[query];
-  data.links = data.links[query];
   if(!data.nodes){ //empty if not defined
     data.nodes = [];
   }
@@ -77,10 +75,9 @@ d3Graph.splitNodes = function(datas,nodeClasses){ //split node into their corres
   return nodeClasses;
 }
 
-d3Graph.update = function(el,data,query){
-  data.nodes = data.nodes[query];
-  data.links = data.links[query];
+d3Graph.update = function(el,data){
   console.log(data);
+
   if(!data.nodes){ //empty if not defined
     data.nodes = [];
   }

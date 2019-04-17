@@ -39,14 +39,20 @@ wss.on('connection', function connection(ws) {
 	console.log("connection WebSocket");
   ws.on('message', function incoming(message) {
   	var message = JSON.parse(message);
-  	console.log(message);
     if(message.query){
     	handleQuery(ws,message);
+    }
+    if(message.selected_result){
+    	handleSelected_result(ws,message);
     }
   });
  
   //
 });
+function handleSelected_result(ws,message){
+	console.log(message.lookup);
+	return lookupArrayOfCitations(ws,message.selected_result.title,message.selected_result.lookup.inCitations,message.selected_result.title)
+}
 function handleQuery(ws,message){
 	const query = message.query;
 	var searchEngine =  getSearchEngine(message.searchEngine);

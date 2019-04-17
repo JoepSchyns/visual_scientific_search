@@ -17,23 +17,16 @@ class Visualisation extends Component {
 		d3Graph.create(this.domElement, {
 		  width: '100%',
 		  height: '100%'
-		}, this.props.data,this.callbackFromD3,this.props.query);
+		}, {nodes:this.props.nodes,links:this.props.links},this.callbackFromD3);
 	}
 	callbackFromD3 = (dataFromChild) => {
 		console.log("callbackFromD3");
 			this.props.callbackToSearch(dataFromChild);
 	}
-	// shouldComponentUpdate(nextProps, nextState) {
- //  		console.log("shouldComponentUpdate");
- //  		console.log(nextProps.data !== this.props.data);
- //  		if(nextProps.data !== this.props.data){
- //  			return true;
- //  		}
- //  		return false;
-	// }
+
 	componentDidUpdate = (prevprops) => {
 		var el = ReactDOM.findDOMNode(this);
-		d3Graph.update(el, this.props.data,this.props.query);
+		d3Graph.update(el, {nodes:this.props.nodes,links:this.props.links});
 	};
 	resizeCallback = (event) =>{
 		if(!this.updateTimeout){
