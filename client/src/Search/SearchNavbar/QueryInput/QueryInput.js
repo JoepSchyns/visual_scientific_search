@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {ELSEVIER_SCOPUS,GOOGLE_SCHOLAR} from 'App/constants.js'
+import {ELSEVIER_SCOPUS,GOOGLE_SCHOLAR} from 'constants.js'
 import {MdSearch} from 'react-icons/md' //https://www.npmjs.com/package/react-icons
 import {
   Row,

@@ -6,14 +6,12 @@ import { instanceOf } from 'prop-types';
 import { withCookies, Cookies } from 'react-cookie';
 import { withRouter } from "react-router";
 import "./Search.css"
-import history from '../../history';
 import {
   Container,
   Row,
   Col
   } from 'reactstrap';
 import { StageSpinner } from "react-spinners-kit";
-const queryString = require('query-string');
 
 class Search extends Component{
 	 static propTypes = {
