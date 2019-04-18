@@ -76,7 +76,6 @@ d3Graph.splitNodes = function(datas,nodeClasses){ //split node into their corres
 }
 
 d3Graph.update = function(el,data){
-  console.log(data);
 
   if(!data.nodes){ //empty if not defined
     data.nodes = [];
@@ -122,7 +121,6 @@ d3Graph.simulationOnTick = function(){
 d3Graph.drag = function(simulation){
   function dragstarted(d) {
     if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-    console.log(d.x);
     d.fx = d.x;
     d.fy = d.y;
   }

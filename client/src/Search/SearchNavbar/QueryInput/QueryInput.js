@@ -17,7 +17,6 @@ import Websocket from 'react-websocket';
 class QueryInput extends Component {
     constructor(props){
       super(props);
-      console.log(props);
     this.state = {
       searchEngine:props.searchEngine || GOOGLE_SCHOLAR,//set default search engine
       dropdownOpen:false 
@@ -39,16 +38,14 @@ class QueryInput extends Component {
   selectSearchEngine = (event) => {
     this.setState({searchEngine:event.currentTarget.dataset.search_engine});
     this.props.callbackToSearchBar({searchEngine:this.state.searchEngine}); 
-    console.log(event.currentTarget.dataset);
-    console.log(event.currentTarget.dataset.search_engine);
   } 
 
   onHandleChange = (event) =>{
-    console.log(event.target.value);
+
   }
   handleData = (data) =>{
       let result = JSON.parse(data);
-      console.log(result);
+
       this.props.callbackToSearchBar(result);     //passdata
   }
   handleOpen = ()  =>{

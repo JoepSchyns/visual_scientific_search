@@ -84,11 +84,11 @@ export default class Scholar extends SearchEngine {
 
           const text = $(footerLinks).text();
           const index = text.indexOf(CITATION_COUNT_PREFIX);
-          console.log("index " + index)
+          //console.log("index " + index)
           if(index >= 0) {
             citedCount = parseInt($(footerLinks).text().substr(CITATION_COUNT_PREFIX.length).match(/\d+/g)[0]);
           }
-          console.log(citedCount);
+          //console.log(citedCount);
           if ($(footerLinks[0]).attr &&
             $(footerLinks[0]).attr('href') &&
             $(footerLinks[0]).attr('href').length > 0) {

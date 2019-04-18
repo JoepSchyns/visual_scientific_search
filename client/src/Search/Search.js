@@ -45,6 +45,7 @@ class Search extends Component{
 			loading:this.props.location.state.loading,
 			selected_result:this.props.location.state.selected_result
 			});
+			console.log(this.state.selected_result);
 			this.sendMessage(JSON.stringify({selected_result:this.state.selected_result}));
   		}
 	
@@ -62,6 +63,7 @@ class Search extends Component{
 
 
 	callbackFromSearchBar = (dataFromChild) => {
+		console.log(dataFromChild);
 	   	dataFromChild.new_query && this.searchDataHandler.handleNewQuery(dataFromChild);
 	   	
 	   	dataFromChild.searchEngine && this.searchDataHandler.handleNewSearchEngine(dataFromChild);
@@ -69,7 +71,6 @@ class Search extends Component{
 	   	dataFromChild.search_result_lookup && this.searchDataHandler.handleNewLookupData(dataFromChild); 
 	   	
 	   	dataFromChild.search_results && this.searchDataHandler.handleNewSearchResults(dataFromChild); //query has response
-	   	console.log(this.state["nodes_" + this.state.query]);
 
 	   	dataFromChild.lookupArrayOfCitation && this.searchDataHandler.handleNewlookupArrayOfCitation(dataFromChild); //add new citation lookup data	   	
   	};
@@ -77,7 +78,6 @@ class Search extends Component{
   	callbackFromVisualisation = (dataFromChild) => {
   		 if(dataFromChild.event === "handleMouseClick"){
   		 	 if(!this.props.location.state){ //if state is not yet saved for this history
-  		 	 	console.log("replace");
   				this.props.history.replace('/',this.state);
   			}
 
@@ -95,7 +95,6 @@ class Search extends Component{
   	}
 	handleData = (data) =>{
 	  let result = JSON.parse(data);
-	  console.log(result);
 	  this.callbackFromSearchBar(result);     //passdata
 	}
 	handleOpen = ()  =>{
