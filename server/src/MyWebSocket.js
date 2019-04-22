@@ -1,6 +1,11 @@
 const WebSocket = require('ws');
 import {getSearchEngine} from './SearchEngine/SearchHandler'
+const JSONfn = require('json-fn'); //https://github.com/graniteds/jsonr
 var elasticsearch = require('elasticsearch');
+		const assignment1 = {functionName:"search",input:{},output:(output) => {return output}}
+		const input2Func = (input) => {return input.id};
+		const assignment2 = {functionName:"getPaperBySemanticScholarId",inputFunc:input2Func,input:assignment1.output,test: "test"}
+		console.log(JSONfn.stringify(assignment2));
 export default class MyWebSocket{
 	constructor(){
 		this.client = new elasticsearch.Client({
@@ -43,7 +48,9 @@ export default class MyWebSocket{
 	});
 	}
 	onMessage(ws,messageTEMP){
-		const message = {assignmentID:0,functionNames:["search","get_search_result_lookup","getCitations"],params:{query:"query",searchEngine:"scholar"}};
+
+		// const message = {assignmentID:0,functionNames:["search","get_search_result_lookup","getCitations"],params:{query:"query",searchEngine:"scholar"}};
+		// const message = {assignmentID:0,functionNames:[{name:"search",resultFunctions:[{name:"get_search_result_lookup"}]},"get_search_result_lookup","getCitations"],params:{query:"query",searchEngine:"scholar"}};
 		this.doAssignment(ws,message.assignmentID,message.functionNames.shift(),message.params)
 			.then(results => this.onMessageChain(ws,message.assignmentID,message.functionNames,results))
 			.then(results => {ws.send(JSON.stringify({"assignmentID":message.assignmentID, "complete":true})); return results;}) //update client query complete
@@ -75,9 +82,6 @@ export default class MyWebSocket{
 				)
 			)
 			.then(results => {return results.filter(x => x)});//remove all that cannot be lookedup
-	}
-	clientCallback(connection,messageOb){
-		connection.send(JSON.stringify(messageOb));
 	}
 	search(params){
 		return new Promise((resolve, reject) => {
